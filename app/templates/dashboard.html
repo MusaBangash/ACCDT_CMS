@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - School Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">📊 Dashboard</h1>
+    </div>
+</div>
+
+<!-- Stats Row 1 -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="card-text small mb-1">Total Students</p>
+                        <h3 id="total_students" class="mb-0">-</h3>
+                    </div>
+                    <i class="bi bi-people-fill" style="font-size: 32px; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="card-text small mb-1">Total Courses</p>
+                        <h3 id="total_courses" class="mb-0">-</h3>
+                    </div>
+                    <i class="bi bi-book" style="font-size: 32px; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="card-text small mb-1">Fees This Month</p>
+                        <h3 id="fees_collected_month" class="mb-0">-</h3>
+                    </div>
+                    <i class="bi bi-credit-card" style="font-size: 32px; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="card-text small mb-1">Today's Attendance</p>
+                        <h3 id="attendance_percent" class="mb-0">-</h3>
+                    </div>
+                    <i class="bi bi-clipboard-check" style="font-size: 32px; opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Breakdown -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Student Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <p class="text-muted small">Total:</p>
+                        <h4 id="total_students_2">-</h4>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted small">Male / Female:</p>
+                        <h4><span id="total_male">-</span> / <span id="total_female">-</span></h4>
+                    </div>
+                </div>
+                <hr>
+                <p class="text-muted small mb-2"><i class="bi bi-house"></i> Day Scholars</p>
+                <p class="mb-2"><span id="total_day_scholars">-</span> total <small class="text-muted">(<span id="total_day_scholars_male">-</span>M / <span id="total_day_scholars_female">-</span>F)</small></p>
+                <p class="text-muted small mb-2"><i class="bi bi-building"></i> Hostel</p>
+                <p class="mb-0"><span id="total_hostel">-</span> total <small class="text-muted">(<span id="total_hostel_male">-</span>M / <span id="total_hostel_female">-</span>F)</small></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Monthly Stats</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-2">New Admissions:</p>
+                <h4 id="new_admissions_this_month" class="mb-3">-</h4>
+                
+                <p class="text-muted small mb-2">Fees Collected:</p>
+                <h4 id="fees_collected_month_2" class="text-success mb-3">-</h4>
+                
+                <p class="text-muted small mb-2">Fees Pending:</p>
+                <h4 id="fees_pending_month" class="text-danger mb-0">-</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Students per Course</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="coursesChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Fee Collection Trend (Last 6 Months)</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="feesTrendChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
