@@ -64,9 +64,10 @@ function updateStatistics(data) {
 function renderCoursesChart(coursesData) {
     const ctx = document.getElementById('coursesChart').getContext('2d');
     
-    // Prepare data for chart
+    // Prepare data for chart - separate male and female
     const labels = coursesData.map(c => c.name);
-    const counts = coursesData.map(c => c.students);
+    const maleData = coursesData.map(c => c.male);
+    const femaleData = coursesData.map(c => c.female);
 
     if (coursesChart) {
         coursesChart.destroy();
@@ -78,34 +79,55 @@ function renderCoursesChart(coursesData) {
             labels: labels,
             datasets: [
                 {
-                    label: 'Students Enrolled',
-                    data: counts,
-                    backgroundColor: [
-                        'rgba(102, 126, 234, 0.8)',
-                        'rgba(240, 147, 251, 0.8)',
-                        'rgba(5, 163, 74, 0.8)',
-                        'rgba(255, 159, 67, 0.8)',
-                        'rgba(238, 90, 111, 0.8)',
-                    ],
+                    label: '🧑 Male Students',
+                    data: maleData,
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderRadius: 4,
+                    borderSkipped: false,
+                },
+                {
+                    label: '👩 Female Students',
+                    data: femaleData,
+                    backgroundColor: 'rgba(240, 147, 251, 0.8)',
                     borderRadius: 4,
                     borderSkipped: false,
                 }
             ]
         },
         options: {
+            indexAxis: coursesData.length > 4 ? 'y' : 'x',
             responsive: true,
             maintainAspectRatio: true,
+            scales: {
+                x: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
             plugins: {
                 legend: {
                     display: true,
                     position: 'top'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
+                },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(context) {
+                            let totalStudents = 0;
+                            context.chart.data.datasets.forEach(dataset => {
+                                totalStudents += dataset.data[context.dataIndex] || 0;
+                            });
+                            return 'Total: ' + totalStudents;
+                        }
                     }
                 }
             }

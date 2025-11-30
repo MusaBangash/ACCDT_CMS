@@ -66,11 +66,12 @@ class Student(db.Model):
     Student model with personal and admission details.
     Categories: regular, needy, orphan, sponsored, staff_child, other
     Admission types: day_scholar, hostel
-    Status: active, inactive
+    Status: active, inactive, graduated, leave
     """
     __tablename__ = 'students'
     
     id = db.Column(db.Integer, primary_key=True)
+    registration_number = db.Column(db.String(20), unique=True, nullable=True)  # Auto-generated: ACCDT-YYYY-00001
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50), nullable=False)
     gender = db.Column(db.String(10), nullable=False)  # M, F, Other
@@ -81,8 +82,20 @@ class Student(db.Model):
     address = db.Column(db.String(255), nullable=True)
     city = db.Column(db.String(50), nullable=True)
     category = db.Column(db.String(20), nullable=False, default='regular')  # regular, needy, orphan, sponsored, staff_child, other
-    status = db.Column(db.String(20), nullable=False, default='active')  # active, inactive
+    status = db.Column(db.String(20), nullable=False, default='active')  # active, inactive, graduated, leave
     photo_path = db.Column(db.String(255), nullable=True)
+    
+    # Additional fields from admission form
+    cnic = db.Column(db.String(20), unique=True, nullable=True)
+    blood_group = db.Column(db.String(10), nullable=True)
+    nationality = db.Column(db.String(50), nullable=True)
+    emergency_contact = db.Column(db.String(15), nullable=True)
+    permanent_address = db.Column(db.String(255), nullable=True)
+    guardian_name = db.Column(db.String(100), nullable=True)
+    guardian_cnic = db.Column(db.String(20), nullable=True)
+    last_qualification = db.Column(db.String(100), nullable=True)
+    current_qualification = db.Column(db.String(100), nullable=True)
+    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -95,6 +108,49 @@ class Student(db.Model):
     def full_name(self):
         """Return full name"""
         return f"{self.first_name} {self.last_name}"
+    
+    @property
+    def gender_label(self):
+        """Get gender label"""
+        genders = {'M': 'Male', 'F': 'Female', 'O': 'Other'}
+        return genders.get(self.gender, self.gender)
+    
+    @property
+    def status_label(self):
+        """Get status label with color code"""
+        status_labels = {
+            'active': 'Active',
+            'inactive': 'Inactive',
+            'graduated': 'Graduated',
+            'leave': 'On Leave'
+        }
+        return status_labels.get(self.status, self.status)
+    
+    @property
+    def status_badge_class(self):
+        """Get Bootstrap badge class for status"""
+        status_colors = {
+            'active': 'bg-success',
+            'inactive': 'bg-danger',
+            'graduated': 'bg-info',
+            'leave': 'bg-warning'
+        }
+        return status_colors.get(self.status, 'bg-secondary')
+    
+    def generate_registration_number(self):
+        """Generate unique registration number using customizable prefix"""
+        from datetime import datetime as dt
+        
+        # Get prefix from settings or use default
+        prefix = Setting.get('reg_number_prefix', 'ACCDT')
+        
+        year = dt.utcnow().year
+        # Count students registered in this year
+        count = Student.query.filter(
+            Student.registration_number.like(f'{prefix}-{year}-%')
+        ).count() + 1
+        self.registration_number = f'{prefix}-{year}-{count:05d}'
+        return self.registration_number
     
     @property
     def age(self):
@@ -129,6 +185,9 @@ class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True, index=True)
     description = db.Column(db.Text, nullable=True)
+    instructor_name = db.Column(db.String(100), nullable=True)
+    instructor_contact = db.Column(db.String(15), nullable=True)
+    course_outline_path = db.Column(db.String(255), nullable=True)
     fee = db.Column(db.Float, nullable=False, default=0.0)
     seats = db.Column(db.Integer, nullable=False, default=30)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -199,23 +258,98 @@ class Attendance(db.Model):
         return f'<Attendance {self.student.full_name} - {self.date} ({self.status})>'
 
 
+class PaymentCategory(db.Model):
+    """
+    Payment Category model - defines different types of fees.
+    Examples: Security, Admission, Monthly Fee, Lab Fee, etc.
+    """
+    __tablename__ = 'payment_categories'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True, index=True)
+    description = db.Column(db.Text, nullable=True)
+    default_amount = db.Column(db.Float, nullable=False, default=0)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    payments = db.relationship('Payment', backref='category', lazy='dynamic', cascade='all, delete-orphan')
+    
+    def __repr__(self):
+        return f'<PaymentCategory {self.name} - Rs. {self.default_amount}>'
+
+
 class Payment(db.Model):
     """
     Payment model - records student fee payments.
     Methods: cash, cheque, bank_transfer, online, other
+    Status: paid, pending, partial_paid
     """
     __tablename__ = 'payments'
     
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('students.id'), nullable=False, index=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('payment_categories.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=True, index=True)
-    amount = db.Column(db.Float, nullable=False)
+    amount_due = db.Column(db.Float, nullable=False)  # Total amount due
+    amount_paid = db.Column(db.Float, nullable=False, default=0)  # Amount paid so far
+    security_fees = db.Column(db.Float, nullable=True, default=0)  # Optional security fees
+    admission_fees = db.Column(db.Float, nullable=True, default=0)  # Optional admission fees
+    status = db.Column(db.String(20), nullable=False, default='pending')  # paid, pending, partial_paid
     payment_date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
     method = db.Column(db.String(20), nullable=False)  # cash, cheque, bank_transfer, online, other
     reference_no = db.Column(db.String(100), nullable=True)  # cheque no, transaction id, etc.
     recorded_by_user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    @property
+    def amount_due_remaining(self):
+        """Calculate remaining balance"""
+        return self.amount_due - self.amount_paid
+    
+    @property
+    def percentage_paid(self):
+        """Calculate percentage paid"""
+        return (self.amount_paid / self.amount_due * 100) if self.amount_due > 0 else 0
     
     def __repr__(self):
-        return f'<Payment {self.student.full_name} - Rs. {self.amount}>'
+        return f'<Payment {self.student.full_name} - {self.category.name} - Rs. {self.amount_due}>'
+
+
+class Setting(db.Model):
+    """
+    Settings model for storing system-wide configurations.
+    Used for customizing registration number prefix, formats, and other settings.
+    """
+    __tablename__ = 'settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    value = db.Column(db.Text, nullable=False)
+    description = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    @classmethod
+    def get(cls, key, default=None):
+        """Get setting value by key"""
+        setting = cls.query.filter_by(key=key).first()
+        return setting.value if setting else default
+    
+    @classmethod
+    def set(cls, key, value, description=None):
+        """Set or update setting value"""
+        setting = cls.query.filter_by(key=key).first()
+        if setting:
+            setting.value = value
+        else:
+            setting = cls(key=key, value=value, description=description)
+            db.session.add(setting)
+        db.session.commit()
+        return setting
+    
+    def __repr__(self):
+        return f'<Setting {self.key}={self.value}>'

@@ -1,0 +1,648 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Student Registration Form</h2>
+            <p class="text-muted">Fill all fields carefully. Fields marked with * are required.</p>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {{ form.hidden_tag() }}
+
+        <!-- Personal Information Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📋 Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- First Name -->
+                    <div class="col-md-6 mb-3">
+                        <label for="firstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" 
+                               id="firstName" name="first_name" placeholder="First Name (Block Letters)" 
+                               value="{{ form.first_name.data or '' }}" required>
+                        {% if form.first_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.first_name.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Last Name -->
+                    <div class="col-md-6 mb-3">
+                        <label for="lastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control {% if form.last_name.errors %}is-invalid{% endif %}" 
+                               id="lastName" name="last_name" placeholder="Last Name (Block Letters)" 
+                               value="{{ form.last_name.data or '' }}" required>
+                        {% if form.last_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.last_name.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Gender -->
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Gender <span class="text-danger">*</span></label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="gender" id="male" 
+                                       value="M" {% if form.gender.data == 'M' %}checked{% endif %} required>
+                                <label class="form-check-label" for="male">Male</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="gender" id="female" 
+                                       value="F" {% if form.gender.data == 'F' %}checked{% endif %} required>
+                                <label class="form-check-label" for="female">Female</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="gender" id="other" 
+                                       value="O" {% if form.gender.data == 'O' %}checked{% endif %} required>
+                                <label class="form-check-label" for="other">Other</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date of Birth -->
+                    <div class="col-md-4 mb-3">
+                        <label for="dob" class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control {% if form.date_of_birth.errors %}is-invalid{% endif %}" 
+                               id="dob" name="date_of_birth" value="{{ form.date_of_birth.data or '' }}" required>
+                        {% if form.date_of_birth.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.date_of_birth.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Age -->
+                    <div class="col-md-4 mb-3">
+                        <label for="age" class="form-label">Age</label>
+                        <input type="number" class="form-control" id="age" placeholder="Auto-calculated" disabled>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- CNIC / B-Form -->
+                    <div class="col-md-6 mb-3">
+                        <label for="cnic" class="form-label">CNIC / B-Form <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control {% if form.cnic.errors %}is-invalid{% endif %}" 
+                               id="cnic" name="cnic" placeholder="e.g., 34201-1234567-5" 
+                               value="{{ form.cnic.data or '' }}" required>
+                        {% if form.cnic.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.cnic.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Blood Group -->
+                    <div class="col-md-6 mb-3">
+                        <label for="bloodGroup" class="form-label">Blood Group</label>
+                        <select class="form-control" id="bloodGroup" name="blood_group">
+                            <option value="">Select Blood Group</option>
+                            <option value="O+" {% if form.blood_group.data == 'O+' %}selected{% endif %}>O+</option>
+                            <option value="O-" {% if form.blood_group.data == 'O-' %}selected{% endif %}>O-</option>
+                            <option value="A+" {% if form.blood_group.data == 'A+' %}selected{% endif %}>A+</option>
+                            <option value="A-" {% if form.blood_group.data == 'A-' %}selected{% endif %}>A-</option>
+                            <option value="B+" {% if form.blood_group.data == 'B+' %}selected{% endif %}>B+</option>
+                            <option value="B-" {% if form.blood_group.data == 'B-' %}selected{% endif %}>B-</option>
+                            <option value="AB+" {% if form.blood_group.data == 'AB+' %}selected{% endif %}>AB+</option>
+                            <option value="AB-" {% if form.blood_group.data == 'AB-' %}selected{% endif %}>AB-</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Nationality -->
+                    <div class="col-md-4 mb-3">
+                        <label for="nationality" class="form-label">Nationality <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control {% if form.nationality.errors %}is-invalid{% endif %}" 
+                               id="nationality" name="nationality" placeholder="e.g., Pakistani" 
+                               value="{{ form.nationality.data or 'Pakistani' }}" required>
+                        {% if form.nationality.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.nationality.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Mobile No -->
+                    <div class="col-md-4 mb-3">
+                        <label for="phone" class="form-label">Mobile No <span class="text-danger">*</span></label>
+                        <input type="tel" class="form-control {% if form.phone.errors %}is-invalid{% endif %}" 
+                               id="phone" name="phone" placeholder="03001234567" 
+                               value="{{ form.phone.data or '' }}" required>
+                        {% if form.phone.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.phone.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Emergency Contact -->
+                    <div class="col-md-4 mb-3">
+                        <label for="emergency" class="form-label">Emergency Contact</label>
+                        <input type="tel" class="form-control" id="emergency" name="emergency_contact" 
+                               placeholder="03001234567" value="{{ form.emergency_contact.data or '' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address Information Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">🏠 Address Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Postal Address -->
+                    <div class="col-md-6 mb-3">
+                        <label for="postalAddress" class="form-label">Postal Address <span class="text-danger">*</span></label>
+                        <textarea class="form-control {% if form.address.errors %}is-invalid{% endif %}" 
+                                  id="postalAddress" name="address" rows="2" placeholder="Street Address" 
+                                  required>{{ form.address.data or '' }}</textarea>
+                        {% if form.address.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.address.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Permanent Address -->
+                    <div class="col-md-6 mb-3">
+                        <label for="permanentAddress" class="form-label">Permanent Address <span class="text-danger">*</span></label>
+                        <textarea class="form-control {% if form.permanent_address.errors %}is-invalid{% endif %}" 
+                                  id="permanentAddress" name="permanent_address" rows="2" 
+                                  placeholder="Permanent Address" required>{{ form.permanent_address.data or '' }}</textarea>
+                        {% if form.permanent_address.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.permanent_address.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- City -->
+                    <div class="col-md-6 mb-3">
+                        <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control {% if form.city.errors %}is-invalid{% endif %}" 
+                               id="city" name="city" placeholder="City Name" 
+                               value="{{ form.city.data or '' }}" required>
+                        {% if form.city.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.city.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guardian Information Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">👨‍👩‍👧 Guardian Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Guardian Name -->
+                    <div class="col-md-6 mb-3">
+                        <label for="guardianName" class="form-label">Father's / Guardian Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control {% if form.guardian_name.errors %}is-invalid{% endif %}" 
+                               id="guardianName" name="guardian_name" placeholder="Full Name" 
+                               value="{{ form.guardian_name.data or '' }}" required>
+                        {% if form.guardian_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.guardian_name.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Guardian CNIC -->
+                    <div class="col-md-6 mb-3">
+                        <label for="guardianCnic" class="form-label">Father's / Guardian CNIC <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control {% if form.guardian_cnic.errors %}is-invalid{% endif %}" 
+                               id="guardianCnic" name="guardian_cnic" placeholder="34201-1234567-5" 
+                               value="{{ form.guardian_cnic.data or '' }}" required>
+                        {% if form.guardian_cnic.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.guardian_cnic.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Guardian Occupation -->
+                    <div class="col-md-6 mb-3">
+                        <label for="occupation" class="form-label">Occupation</label>
+                        <input type="text" class="form-control" id="occupation" name="guardian_occupation" 
+                               placeholder="Occupation" value="{{ form.guardian_occupation.data or '' }}">
+                    </div>
+
+                    <!-- Guardian Monthly Income -->
+                    <div class="col-md-6 mb-3">
+                        <label for="monthlyIncome" class="form-label">Monthly Income</label>
+                        <input type="number" class="form-control" id="monthlyIncome" name="guardian_monthly_income" 
+                               placeholder="0" value="{{ form.guardian_monthly_income.data or '' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course & Category Selection Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">🎓 Course & Category Selection</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Select Courses (Multiple) -->
+                    <div class="col-md-6 mb-3">
+                        <label for="courses" class="form-label">Select Courses <span class="text-danger">*</span></label>
+                        <select class="form-control {% if form.course_id.errors %}is-invalid{% endif %}" 
+                                id="courses" name="course_id" multiple required>
+                            {% for course in courses %}
+                                <option value="{{ course.id }}" {% if form.course_id.data and (course.id in form.course_id.data or course.id|string in form.course_id.data|map(string)|list) %}selected{% endif %}>
+                                    {{ course.name }} (Rs. {{ '{:,.0f}'.format(course.fee) }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">Hold CTRL (or CMD on Mac) to select multiple courses</small>
+                        {% if form.course_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.course_id.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Admission Type -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Admission Type <span class="text-danger">*</span></label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="admission_type" id="dayScholar" 
+                                       value="day_scholar" {% if form.admission_type.data == 'day_scholar' %}checked{% endif %} required>
+                                <label class="form-check-label" for="dayScholar">Day Scholar</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="admission_type" id="hostel" 
+                                       value="hostel" {% if form.admission_type.data == 'hostel' %}checked{% endif %} required>
+                                <label class="form-check-label" for="hostel">Hostel</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Student Category -->
+                    <div class="col-md-6 mb-3">
+                        <label for="category" class="form-label">Student Category</label>
+                        <select class="form-control" id="category" name="category">
+                            <option value="">Select Category</option>
+                            <option value="regular" {% if form.category.data == 'regular' %}selected{% endif %}>Regular</option>
+                            <option value="needy" {% if form.category.data == 'needy' %}selected{% endif %}>Needy</option>
+                            <option value="orphan" {% if form.category.data == 'orphan' %}selected{% endif %}>Orphan</option>
+                            <option value="sponsored" {% if form.category.data == 'sponsored' %}selected{% endif %}>Sponsored</option>
+                            <option value="staff_child" {% if form.category.data == 'staff_child' %}selected{% endif %}>Staff Child</option>
+                            <option value="other" {% if form.category.data == 'other' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Shift -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Shift <span class="text-danger">*</span></label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="shift" id="morning" 
+                                       value="morning" {% if form.shift.data == 'morning' %}checked{% endif %} required>
+                                <label class="form-check-label" for="morning">Morning</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="shift" id="evening" 
+                                       value="evening" {% if form.shift.data == 'evening' %}checked{% endif %} required>
+                                <label class="form-check-label" for="evening">Evening</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Qualifications Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📚 Qualifications</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Last Qualification -->
+                    <div class="col-md-6 mb-3">
+                        <label for="lastQual" class="form-label">Last Qualification</label>
+                        <input type="text" class="form-control" id="lastQual" name="last_qualification" 
+                               placeholder="e.g., Matriculation, O-Level" 
+                               value="{{ form.last_qualification.data or '' }}">
+                    </div>
+
+                    <!-- Current Qualification -->
+                    <div class="col-md-6 mb-3">
+                        <label for="currentQual" class="form-label">Current Qualification</label>
+                        <input type="text" class="form-control" id="currentQual" name="current_qualification" 
+                               placeholder="e.g., Intermediate, A-Level" 
+                               value="{{ form.current_qualification.data or '' }}">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Special Questions Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">❓ Additional Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="computerSkills" class="form-label">Write down your Computer Skills if any</label>
+                    <textarea class="form-control" id="computerSkills" name="computer_skills" rows="2" 
+                              placeholder="List your computer skills...">{{ form.computer_skills.data or '' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="courseGoal" class="form-label">What do you aim to achieve by studying the specified course?</label>
+                    <textarea class="form-control" id="courseGoal" name="course_goal" rows="2" 
+                              placeholder="Describe your goals...">{{ form.course_goal.data or '' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Do you have any Laptop / Computer with stable Internet?</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="has_internet" id="hasInternet" 
+                                   value="yes" {% if form.has_internet.data == 'yes' %}checked{% endif %}>
+                            <label class="form-check-label" for="hasInternet">Yes</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="has_internet" id="noInternet" 
+                                   value="no" {% if form.has_internet.data == 'no' %}checked{% endif %}>
+                            <label class="form-check-label" for="noInternet">No</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="disability" class="form-label">Type of Disability (if applicable)</label>
+                    <input type="text" class="form-control" id="disability" name="disability_type" 
+                           placeholder="Type of Disability" value="{{ form.disability_type.data or '' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label for="specialNeeds" class="form-label">If you have any special need</label>
+                    <textarea class="form-control" id="specialNeeds" name="special_needs" rows="2" 
+                              placeholder="Describe any special needs...">{{ form.special_needs.data or '' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Document Upload Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">📄 Required Documents</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Note:</strong> The following documents are required for admission:
+                    <ul class="mb-0 mt-2">
+                        <li>Character Certificate</li>
+                        <li>Student CNIC / B Form</li>
+                        <li>Father's/Mother's CNIC</li>
+                        <li>Two (2) Photographs (Blue Background)</li>
+                        <li>Matriculation/O' Level Certificate</li>
+                    </ul>
+                </div>
+
+                <div class="row">
+                    <!-- Student Photo -->
+                    <div class="col-md-6 mb-3">
+                        <label for="photo" class="form-label">Student Photo (Blue Background)</label>
+                        <input type="file" class="form-control {% if form.photo.errors %}is-invalid{% endif %}" 
+                               id="photo" name="photo" accept="image/*">
+                        <small class="form-text text-muted">Max 2MB, JPG/PNG</small>
+                        {% if form.photo.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.photo.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Character Certificate -->
+                    <div class="col-md-6 mb-3">
+                        <label for="characterCert" class="form-label">Character Certificate</label>
+                        <input type="file" class="form-control" id="characterCert" name="character_certificate" accept="application/pdf">
+                        <small class="form-text text-muted">PDF only, Max 5MB</small>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- CNIC Copy -->
+                    <div class="col-md-6 mb-3">
+                        <label for="cnicCopy" class="form-label">CNIC / B Form Copy</label>
+                        <input type="file" class="form-control" id="cnicCopy" name="cnic_copy" accept="application/pdf">
+                        <small class="form-text text-muted">PDF only, Max 5MB</small>
+                    </div>
+
+                    <!-- Qualification Certificate -->
+                    <div class="col-md-6 mb-3">
+                        <label for="qualCert" class="form-label">Qualification Certificate (Matriculation/O-Level)</label>
+                        <input type="file" class="form-control" id="qualCert" name="qualification_certificate" accept="application/pdf">
+                        <small class="form-text text-muted">PDF only, Max 5MB</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Management Section (Admin Only) -->
+        {% if not is_new %}
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">🔐 Status Management (Admin Only)</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle"></i> Use this section to manage student status. For quick status changes, use the Quick Actions button on the student detail page.
+                </div>
+                <div class="row">
+                    <!-- Student Status -->
+                    <div class="col-md-6 mb-3">
+                        <label for="status" class="form-label">Student Status <span class="text-danger">*</span></label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="">Select Status</option>
+                            <option value="active" {% if form.status and form.status.data == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if form.status and form.status.data == 'inactive' %}selected{% endif %}>Inactive</option>
+                            <option value="graduated" {% if form.status and form.status.data == 'graduated' %}selected{% endif %}>Graduated</option>
+                            <option value="leave" {% if form.status and form.status.data == 'leave' %}selected{% endif %}>On Leave</option>
+                        </select>
+                    </div>
+
+                    <!-- Status Info Badge -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Current Status</label>
+                        <div>
+                            {% if form.status and form.status.data %}
+                                {% set status_colors = {'active': 'success', 'inactive': 'danger', 'graduated': 'info', 'leave': 'warning'} %}
+                                <span class="badge bg-{{ status_colors.get(form.status.data, 'secondary') }} fs-6">
+                                    {% if form.status.data == 'active' %}Active
+                                    {% elif form.status.data == 'inactive' %}Inactive
+                                    {% elif form.status.data == 'graduated' %}Graduated
+                                    {% elif form.status.data == 'leave' %}On Leave
+                                    {% endif %}
+                                </span>
+                            {% else %}
+                                <span class="text-muted small">No status set</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Registration Number -->
+                    <div class="col-md-6 mb-3">
+                        <label for="regNumber" class="form-label">Registration Number</label>
+                        <input type="text" class="form-control" id="regNumber" name="registration_number" 
+                               placeholder="Leave empty to auto-generate" 
+                               value="{{ form.registration_number.data or '' }}">
+                        <small class="form-text text-muted">
+                            Leave empty to auto-generate (ACCDT-2025-00001), or enter custom number
+                        </small>
+                    </div>
+
+                    <!-- Admission Date -->
+                    <div class="col-md-6 mb-3">
+                        <label for="admissionDate" class="form-label">Admission Date</label>
+                        <input type="date" class="form-control" id="admissionDate" name="admission_date" 
+                               value="{{ form.admission_date.data.strftime('%Y-%m-%d') if form.admission_date and form.admission_date.data else '' }}" readonly>
+                        <small class="form-text text-muted">Auto-filled, cannot be changed</small>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning" role="alert">
+                    <strong>Status Meanings:</strong>
+                    <ul class="mb-0 mt-2">
+                        <li><strong>Active:</strong> Student is currently enrolled and attending</li>
+                        <li><strong>Inactive:</strong> Student is not attending but not formally withdrawn</li>
+                        <li><strong>Graduated:</strong> Student has completed the course</li>
+                        <li><strong>On Leave:</strong> Student is temporarily absent</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Form Actions -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-check"></i> Submit Registration
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="{{ url_for('students.list_students') }}" class="btn btn-secondary btn-lg w-100">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terms & Conditions -->
+        <div class="alert alert-warning">
+            <strong>Note:</strong> Applicant should fill in the form carefully, get it countersigned by their Father or Guardian, 
+            and attach attested copies of certificates (non-returnable in any case) as evidence before submitting to the college office.
+        </div>
+    </form>
+</div>
+
+<!-- Script to calculate age -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dobInput = document.getElementById('dob');
+    const ageInput = document.getElementById('age');
+
+    function calculateAge() {
+        const dob = new Date(dobInput.value);
+        const today = new Date();
+        
+        if (!dobInput.value) {
+            ageInput.value = '';
+            return;
+        }
+
+        let age = today.getFullYear() - dob.getFullYear();
+        const monthDiff = today.getMonth() - dob.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+            age--;
+        }
+        
+        ageInput.value = age > 0 ? age : '';
+    }
+
+    dobInput.addEventListener('change', calculateAge);
+
+    // Enable Bootstrap validation
+    const forms = document.querySelectorAll('form.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+});
+</script>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.text-danger {
+    font-weight: bold;
+}
+
+.form-check-inline {
+    margin-right: 1rem;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+}
+</style>
+{% endblock %}

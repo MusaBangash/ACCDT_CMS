@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1><i class="bi bi-cloud-download"></i> Data Backup & Database Management</h1>
+            <p class="text-muted">Download backups of your data or clear database tables</p>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-primary">{{ stats.students }}</h3>
+                    <p class="card-text">Students</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-info">{{ stats.courses }}</h3>
+                    <p class="card-text">Courses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-success">{{ stats.enrollments }}</h3>
+                    <p class="card-text">Enrollments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-warning">{{ stats.payments }}</h3>
+                    <p class="card-text">Payments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-danger">{{ stats.attendance }}</h3>
+                    <p class="card-text">Attendance</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-secondary">{{ total_records }}</h3>
+                    <p class="card-text">Total Records</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Download Backups Section -->
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-download"></i> Download Backups
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Download your data as backup files</p>
+                    
+                    <div class="list-group">
+                        <a href="{{ url_for('backup.download_students') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="bi bi-person"></i> Students</h6>
+                                    <small class="text-muted">{{ stats.students }} records</small>
+                                </div>
+                                <span class="badge bg-primary">CSV</span>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('backup.download_courses') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="bi bi-book"></i> Courses</h6>
+                                    <small class="text-muted">{{ stats.courses }} records</small>
+                                </div>
+                                <span class="badge bg-info">CSV</span>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('backup.download_payments') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="bi bi-credit-card"></i> Payments</h6>
+                                    <small class="text-muted">{{ stats.payments }} records</small>
+                                </div>
+                                <span class="badge bg-success">CSV</span>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('backup.download_attendance') }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="bi bi-clipboard-check"></i> Attendance</h6>
+                                    <small class="text-muted">{{ stats.attendance }} records</small>
+                                </div>
+                                <span class="badge bg-warning">CSV</span>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('backup.download_all') }}" class="list-group-item list-group-item-action bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1"><i class="bi bi-archive"></i> Complete Backup</h6>
+                                    <small class="text-muted">All data ({{ total_records }} records)</small>
+                                </div>
+                                <span class="badge bg-dark">JSON</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Restore Database Section -->
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <i class="bi bi-cloud-upload"></i> Restore Database
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Upload a JSON backup file to restore your database</p>
+                    
+                    <form method="POST" action="{{ url_for('backup.restore_database') }}" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="backup_file" class="form-label">Select Backup File (JSON)</label>
+                            <input type="file" class="form-control" id="backup_file" name="backup_file" accept=".json" required>
+                            <small class="form-text text-muted">Only JSON backup files (.json) are supported</small>
+                        </div>
+                        
+                        <div class="alert alert-info mb-3">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Note:</strong> This will replace all existing data with the backup file contents. Admin user will be retained.
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="bi bi-cloud-upload"></i> Restore Database
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clear Database Section -->
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-danger text-white">
+                    <i class="bi bi-exclamation-triangle"></i> Clear Database Tables
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning mb-3">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <strong>Warning:</strong> These actions will permanently delete data. Backup first!
+                    </div>
+                    
+                    <div class="list-group">
+                        <form method="POST" action="{{ url_for('backup.clear_database') }}" class="list-group-item list-group-item-action p-0">
+                            <button type="submit" name="table" value="students" class="btn btn-block w-100 text-start p-3" style="border: none; text-decoration: none; background: none;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1"><i class="bi bi-person"></i> Clear All Students</h6>
+                                        <small class="text-muted">Delete {{ stats.students }} student records</small>
+                                    </div>
+                                    <span class="badge bg-danger">DELETE</span>
+                                </div>
+                            </button>
+                        </form>
+                        
+                        <form method="POST" action="{{ url_for('backup.clear_database') }}" class="list-group-item list-group-item-action p-0">
+                            <button type="submit" name="table" value="courses" class="btn btn-block w-100 text-start p-3" style="border: none; text-decoration: none; background: none;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1"><i class="bi bi-book"></i> Clear All Courses</h6>
+                                        <small class="text-muted">Delete {{ stats.courses }} course records</small>
+                                    </div>
+                                    <span class="badge bg-danger">DELETE</span>
+                                </div>
+                            </button>
+                        </form>
+                        
+                        <form method="POST" action="{{ url_for('backup.clear_database') }}" class="list-group-item list-group-item-action p-0">
+                            <button type="submit" name="table" value="payments" class="btn btn-block w-100 text-start p-3" style="border: none; text-decoration: none; background: none;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1"><i class="bi bi-credit-card"></i> Clear All Payments</h6>
+                                        <small class="text-muted">Delete {{ stats.payments }} payment records</small>
+                                    </div>
+                                    <span class="badge bg-danger">DELETE</span>
+                                </div>
+                            </button>
+                        </form>
+                        
+                        <form method="POST" action="{{ url_for('backup.clear_database') }}" class="list-group-item list-group-item-action p-0">
+                            <button type="submit" name="table" value="attendance" class="btn btn-block w-100 text-start p-3" style="border: none; text-decoration: none; background: none;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1"><i class="bi bi-clipboard-check"></i> Clear All Attendance</h6>
+                                        <small class="text-muted">Delete {{ stats.attendance }} attendance records</small>
+                                    </div>
+                                    <span class="badge bg-danger">DELETE</span>
+                                </div>
+                            </button>
+                        </form>
+                        
+                        <form method="POST" action="{{ url_for('backup.clear_database') }}" class="list-group-item list-group-item-action p-0 bg-light">
+                            <button type="submit" name="table" value="all" class="btn btn-block w-100 text-start p-3" style="border: none; text-decoration: none; background: none;" onclick="return confirm('This will delete ALL data except admin user! Are you sure?');">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1"><i class="bi bi-trash"></i> Clear ALL Data</h6>
+                                        <small class="text-muted">Delete all {{ total_records }} records (admin kept)</small>
+                                    </div>
+                                    <span class="badge bg-dark">DELETE ALL</span>
+                                </div>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <i class="bi bi-info-circle"></i> Tips
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Always backup before clearing tables</li>
+                        <li>Complete backup includes all data as JSON</li>
+                        <li>Individual backups are in CSV format</li>
+                        <li>Admin user is never deleted</li>
+                        <li>Use this before uploading actual data</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.list-group-item {
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa !important;
+}
+
+.card {
+    border: none;
+}
+
+.btn-block {
+    cursor: pointer;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <div class="btn-group" role="group">
+                <a href="{{ url_for('attendance.mark_attendance') }}" class="btn btn-outline-primary active">
+                    <i class="bi bi-pencil-square"></i> Mark Attendance
+                </a>
+                <a href="{{ url_for('attendance.attendance_report') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-bar-chart"></i> View Report
+                </a>
+                <a href="{{ url_for('attendance.attendance_summary') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-graph-up"></i> Summary
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">
+                <i class="bi bi-clipboard-check"></i> Mark Attendance
+            </h1>
+        </div>
+    </div>
+
+    <!-- Course & Date Selection Form -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-filter"></i> Select Course & Date
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="row g-3">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="col-md-6">
+                            <label for="course" class="form-label">Course</label>
+                            {{ form.course(class="form-select" + (" is-invalid" if form.course.errors else "")) }}
+                            {% if form.course.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.course.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="date" class="form-label">Date</label>
+                            {{ form.date(class="form-control" + (" is-invalid" if form.date.errors else "")) }}
+                            {% if form.date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.date.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-12">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Courses</h5>
+                    <h2>
+                        {% if selected_course %}
+                            1
+                        {% else %}
+                            -
+                        {% endif %}
+                    </h2>
+                </div>
+            </div>
+            <div class="card shadow-sm text-center bg-success text-white mt-3">
+                <div class="card-body">
+                    <h5 class="card-title">Students</h5>
+                    <h2>{{ students|length }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Attendance Table -->
+    {% if selected_course and students %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <i class="bi bi-people-fill"></i> Mark Attendance for {{ selected_course.name }}
+                    <span class="badge bg-light text-dark float-end">{{ selected_date }}</span>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="attendanceForm" data-course-id="{{ selected_course.id }}" data-date="{{ selected_date }}">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Reg. No.</th>
+                                        <th>Status</th>
+                                        <th>Previous Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for student in students %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ student.full_name }}</strong>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ student.registration_number }}</span>
+                                        </td>
+                                        <td>
+                                            <select class="form-select form-select-sm attendance-status" 
+                                                    name="status_{{ student.id }}"
+                                                    data-student-id="{{ student.id }}">
+                                                <option value="">Select...</option>
+                                                <option value="present" {% if attendance_records.get(student.id) == 'present' %}selected{% endif %}>
+                                                    ✓ Present
+                                                </option>
+                                                <option value="absent" {% if attendance_records.get(student.id) == 'absent' %}selected{% endif %}>
+                                                    ✗ Absent
+                                                </option>
+                                                <option value="leave" {% if attendance_records.get(student.id) == 'leave' %}selected{% endif %}>
+                                                    ~ On Leave
+                                                </option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            {% set prev_status = attendance_records.get(student.id) %}
+                                            {% if prev_status %}
+                                                {% if prev_status == 'present' %}
+                                                    <span class="badge bg-success">Present</span>
+                                                {% elif prev_status == 'absent' %}
+                                                    <span class="badge bg-danger">Absent</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">On Leave</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="mt-4">
+                            <button type="button" class="btn btn-primary" id="saveBtn">
+                                <i class="bi bi-check-circle"></i> Save Attendance
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="markAllPresent">
+                                <i class="bi bi-check-all"></i> Mark All Present
+                            </button>
+                            <button type="button" class="btn btn-warning" id="markAllAbsent">
+                                <i class="bi bi-dash-circle"></i> Mark All Absent
+                            </button>
+                            <a href="{{ url_for('attendance.mark_attendance') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-counterclockwise"></i> Reset
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% elif selected_course and not students %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-info" role="alert">
+                <i class="bi bi-info-circle"></i> No students enrolled in this course for the selected date.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mark All Present
+    const markAllPresentBtn = document.getElementById('markAllPresent');
+    if (markAllPresentBtn) {
+        markAllPresentBtn.addEventListener('click', function() {
+            document.querySelectorAll('.attendance-status').forEach(select => {
+                select.value = 'present';
+            });
+        });
+    }
+
+    // Mark All Absent
+    const markAllAbsentBtn = document.getElementById('markAllAbsent');
+    if (markAllAbsentBtn) {
+        markAllAbsentBtn.addEventListener('click', function() {
+            document.querySelectorAll('.attendance-status').forEach(select => {
+                select.value = 'absent';
+            });
+        });
+    }
+
+    // Save Attendance
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+            const records = [];
+            const form = document.getElementById('attendanceForm');
+            const courseId = parseInt(form.dataset.courseId) || null;
+            const date = form.dataset.date || '';
+
+            if (!courseId) {
+                alert('Please select a course first');
+                return;
+            }
+
+            document.querySelectorAll('.attendance-status').forEach(select => {
+                const status = select.value;
+                if (status) {
+                    const studentId = parseInt(select.dataset.studentId);
+                    records.push({
+                        student_id: studentId,
+                        status: status
+                    });
+                }
+            });
+
+            if (records.length === 0) {
+                alert('Please select status for at least one student');
+                return;
+            }
+
+            fetch('{{ url_for("attendance.bulk_save_attendance") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    course_id: courseId,
+                    date: date,
+                    records: records
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Attendance saved successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while saving attendance');
+            });
+        });
+    }
+});
+</script>
+
+<style>
+.table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+.badge {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.65rem;
+}
+
+.form-select-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    min-width: 120px;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="bi bi-credit-card"></i> Payment Management</h1>
+                <div>
+                    <a href="{{ url_for('payments.record_payment') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Record Payment
+                    </a>
+                    <a href="{{ url_for('payments.payment_summary') }}" class="btn btn-info">
+                        <i class="bi bi-graph-up"></i> Summary
+                    </a>
+                    <a href="{{ url_for('payments.list_categories') }}" class="btn btn-warning">
+                        <i class="bi bi-tags"></i> Categories
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Due</h6>
+                    <h3>Rs. {{ "{:,.0f}".format(stats.total_due) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Paid</h6>
+                    <h3>Rs. {{ "{:,.0f}".format(stats.total_paid) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm bg-danger text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Pending</h6>
+                    <h3>Rs. {{ "{:,.0f}".format(stats.total_pending) }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <i class="bi bi-filter"></i> Advanced Filters
+                </div>
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <!-- Row 1: Student, Status -->
+                        <div class="col-md-4">
+                            <label class="form-label">Student</label>
+                            <select class="form-select" name="student_id">
+                                <option value="">All Students</option>
+                                {% for student in students %}
+                                <option value="{{ student.id }}" {% if selected_student_id == student.id %}selected{% endif %}>
+                                    {{ student.full_name }} - {{ student.registration_number }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Payment Status</label>
+                            <select class="form-select" name="status">
+                                <option value="">All Statuses</option>
+                                <option value="paid" {% if selected_status == 'paid' %}selected{% endif %}>Paid</option>
+                                <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="partial_paid" {% if selected_status == 'partial_paid' %}selected{% endif %}>Partial Paid</option>
+                            </select>
+                        </div>
+
+                        <!-- Row 2: Method, Course, Date Range -->
+                        <div class="col-md-4">
+                            <label class="form-label">Payment Method</label>
+                            <select class="form-select" name="method">
+                                <option value="">All Methods</option>
+                                <option value="cash" {% if selected_method == 'cash' %}selected{% endif %}>Cash</option>
+                                <option value="check" {% if selected_method == 'check' %}selected{% endif %}>Check</option>
+                                <option value="bank_transfer" {% if selected_method == 'bank_transfer' %}selected{% endif %}>Bank Transfer</option>
+                                <option value="online" {% if selected_method == 'online' %}selected{% endif %}>Online</option>
+                                <option value="card" {% if selected_method == 'card' %}selected{% endif %}>Card</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Course</label>
+                            <select class="form-select" name="course_id">
+                                <option value="">All Courses</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}" {% if selected_course_id == course.id %}selected{% endif %}>
+                                    {{ course.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Date Range</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" name="start_date" value="{{ selected_start_date }}">
+                                <input type="date" class="form-control" name="end_date" value="{{ selected_end_date }}">
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Action Buttons -->
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Apply Filters
+                            </button>
+                            <a href="{{ url_for('payments.list_payments') }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-clockwise"></i> Reset
+                            </a>
+                            <a href="{{ url_for('payments.print_records', student_id=selected_student_id, status=selected_status, method=selected_method, course_id=selected_course_id, start_date=selected_start_date, end_date=selected_end_date) }}" 
+                               class="btn btn-success" target="_blank">
+                                <i class="bi bi-printer"></i> Print Records
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payments Table -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-list"></i> Payment Records
+                </div>
+                <div class="card-body">
+                    {% if payments.items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Amount Due</th>
+                                    <th>Amount Paid</th>
+                                    <th>Status</th>
+                                    <th>Payment Date</th>
+                                    <th>Method</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments.items %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ payment.student.full_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ payment.student.registration_number }}</small>
+                                    </td>
+                                    <td>
+                                        <strong>Rs. {{ "{:,.0f}".format(payment.amount_due) }}</strong>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">Rs. {{ "{:,.0f}".format(payment.amount_paid) }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if payment.status == 'paid' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% elif payment.status == 'pending' %}
+                                            <span class="badge bg-danger">Pending</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Partial Paid</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.payment_date.strftime('%d-%m-%Y') }}</td>
+                                    <td>{{ payment.method|title }}</td>
+                                    <td>
+                                        <a href="{{ url_for('payments.view_payment', payment_id=payment.id) }}" 
+                                           class="btn btn-sm btn-info" title="View">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('payments.edit_payment', payment_id=payment.id) }}" 
+                                           class="btn btn-sm btn-warning" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{{ url_for('payments.student_slip', payment_id=payment.id) }}" 
+                                           class="btn btn-sm btn-success" target="_blank" title="Print Slip">
+                                            <i class="bi bi-printer"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            {% if payments.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('payments.list_payments', page=payments.prev_num, student_id=selected_student_id, status=selected_status) }}">
+                                    Previous
+                                </a>
+                            </li>
+                            {% endif %}
+
+                            {% for page_num in payments.iter_pages() %}
+                                {% if page_num %}
+                                    {% if page_num == payments.page %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('payments.list_payments', page=page_num, student_id=selected_student_id, status=selected_status) }}">
+                                            {{ page_num }}
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if payments.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('payments.list_payments', page=payments.next_num, student_id=selected_student_id, status=selected_status) }}">
+                                    Next
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i> No payment records found.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+}
+.badge {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.65rem;
+}
+</style>
+{% endblock %}

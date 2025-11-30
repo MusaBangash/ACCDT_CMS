@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-cog"></i> System Settings</h2>
+            <p class="text-muted">Customize registration numbers and school information</p>
+        </div>
+    </div>
+
+    <!-- Registration Number Settings -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-id-card"></i> Registration Number Settings</h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info" role="alert">
+                <strong>Current Format:</strong> <code>{{ reg_prefix }}-2025-00001</code>
+                <br>
+                <small>Registration numbers are automatically generated when students register. You can customize the prefix below.</small>
+            </div>
+
+            <form method="POST" action="{{ url_for('settings.update_registration_settings') }}">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="regPrefix" class="form-label">Registration Number Prefix</label>
+                        <input type="text" class="form-control" id="regPrefix" name="reg_prefix" 
+                               value="{{ reg_prefix }}" placeholder="e.g., ACCDT, CMS, SRM, etc." required>
+                        <small class="form-text text-muted">
+                            Alphanumeric characters only, max 10 characters. Example: <code>ACCDT</code>, <code>CMS</code>, <code>SCHOOL_2024</code>
+                        </small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Preview</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="preview" 
+                                   value="{{ reg_prefix }}-2025-00001" disabled>
+                            <span class="input-group-text">
+                                <i class="fas fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <p class="mb-3"><strong>How it works:</strong></p>
+                        <ul class="list-unstyled mb-3">
+                            <li><i class="fas fa-check text-success"></i> <strong>Prefix:</strong> Your custom prefix (e.g., ACCDT)</li>
+                            <li><i class="fas fa-check text-success"></i> <strong>Year:</strong> Automatically set to current year (2025)</li>
+                            <li><i class="fas fa-check text-success"></i> <strong>Counter:</strong> Automatically increments per student (00001, 00002, etc.)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Prefix
+                    </button>
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Cancel
+                    </a>
+                </div>
+            </form>
+
+            <hr>
+
+            <div class="alert alert-warning" role="alert">
+                <strong>Important:</strong> Changing the prefix will only affect newly registered students. Existing registration numbers will not change.
+            </div>
+        </div>
+    </div>
+
+    <!-- School Information -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-school"></i> School Information</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('settings.update_school_info') }}">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="schoolName" class="form-label">School/Institution Name</label>
+                        <input type="text" class="form-control" id="schoolName" name="school_name" 
+                               value="{{ school_name }}" placeholder="Enter school name" required>
+                        <small class="form-text text-muted">Used in reports and certificates</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Update Information
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Settings Summary -->
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Current Settings Summary</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <tbody>
+                    <tr>
+                        <td><strong>Registration Prefix:</strong></td>
+                        <td><code>{{ reg_prefix }}</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Registration Format:</strong></td>
+                        <td><code>{{ reg_prefix }}-{YEAR}-{COUNT}</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>School Name:</strong></td>
+                        <td>{{ school_name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Example Registration Number:</strong></td>
+                        <td><code>{{ reg_prefix }}-2025-00001</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// Live preview for registration prefix
+document.getElementById('regPrefix').addEventListener('input', function() {
+    const prefix = this.value.toUpperCase() || 'PREFIX';
+    document.getElementById('preview').value = prefix + '-2025-00001';
+});
+</script>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+code {
+    background-color: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 500;
+}
+</style>
+{% endblock %}

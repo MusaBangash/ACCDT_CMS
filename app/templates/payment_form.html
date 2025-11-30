@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-credit-card"></i> {{ title }}
+                </div>
+                <div class="card-body">
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Student Selection -->
+                        <div class="mb-3">
+                            <label for="student" class="form-label">Student <span class="text-danger">*</span></label>
+                            {{ form.student(class="form-select" + (" is-invalid" if form.student.errors else "")) }}
+                            {% if form.student.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.student.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Course Selection (Optional) -->
+                        <div class="mb-3">
+                            <label for="course" class="form-label">Course (Optional)</label>
+                            {{ form.course(class="form-select") }}
+                        </div>
+
+                        <!-- Amount Information -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="amount_due" class="form-label">Amount Due (Rs.) <span class="text-danger">*</span></label>
+                                    {{ form.amount_due(class="form-control" + (" is-invalid" if form.amount_due.errors else "")) }}
+                                    {% if form.amount_due.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.amount_due.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="amount_paid" class="form-label">Amount Paid (Rs.) <span class="text-danger">*</span></label>
+                                    {{ form.amount_paid(class="form-control" + (" is-invalid" if form.amount_paid.errors else "")) }}
+                                    {% if form.amount_paid.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.amount_paid.errors[0] }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Optional Fees -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="security_fees" class="form-label">Security Fees (Rs.) <span class="text-muted">(Optional)</span></label>
+                                    <input type="number" name="security_fees" class="form-control" placeholder="e.g., 5000" value="{{ form_data.get('security_fees', '') if form_data else '' }}" step="0.01" min="0">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="admission_fees" class="form-label">Admission Fees (Rs.) <span class="text-muted">(Optional)</span></label>
+                                    <input type="number" name="admission_fees" class="form-control" placeholder="e.g., 3000" value="{{ form_data.get('admission_fees', '') if form_data else '' }}" step="0.01" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Balance Info -->
+                        <div class="alert alert-info" role="alert">
+                            <strong>Balance:</strong> <span id="balance">-</span>
+                        </div>
+
+                        <!-- Payment Status -->
+                        <div class="mb-3">
+                            <label for="status" class="form-label">Payment Status <span class="text-danger">*</span></label>
+                            {{ form.status(class="form-select" + (" is-invalid" if form.status.errors else "")) }}
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.status.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="mb-3">
+                            <label for="method" class="form-label">Payment Method <span class="text-danger">*</span></label>
+                            {{ form.method(class="form-select" + (" is-invalid" if form.method.errors else "")) }}
+                            {% if form.method.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.method.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Reference Number -->
+                        <div class="mb-3">
+                            <label for="reference_no" class="form-label">Reference No. (Cheque/Transaction ID)</label>
+                            {{ form.reference_no(class="form-control", placeholder="e.g., CHQ-12345 or TXN-67890") }}
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">Notes</label>
+                            {{ form.notes(class="form-control", rows=3, placeholder="Additional notes about this payment") }}
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-between">
+                            <div>
+                                <a href="{{ url_for('payments.payment_summary') }}" class="btn btn-info">
+                                    <i class="bi bi-graph-up"></i> Summary
+                                </a>
+                                <a href="{{ url_for('payments.list_payments') }}" class="btn btn-secondary">
+                                    <i class="bi bi-funnel"></i> View Records
+                                </a>
+                            </div>
+                            <div>
+                                <a href="{{ url_for('payments.list_payments') }}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </a>
+                                {{ form.submit(class="btn btn-primary") }}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const amountDueInput = document.querySelector('input[name="amount_due"]');
+    const amountPaidInput = document.querySelector('input[name="amount_paid"]');
+    const balanceSpan = document.getElementById('balance');
+
+    function updateBalance() {
+        const due = parseFloat(amountDueInput.value) || 0;
+        const paid = parseFloat(amountPaidInput.value) || 0;
+        const balance = due - paid;
+        balanceSpan.textContent = 'Rs. ' + balance.toLocaleString('en-PK', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+        balanceSpan.style.color = balance > 0 ? '#dc3545' : '#28a745';
+    }
+
+    amountDueInput.addEventListener('change', updateBalance);
+    amountPaidInput.addEventListener('change', updateBalance);
+    updateBalance();
+});
+</script>
+
+<style>
+.text-danger {
+    color: #dc3545;
+}
+.alert-info {
+    background-color: #e7f3ff;
+    border-left: 4px solid #2196F3;
+}
+</style>
+{% endblock %}

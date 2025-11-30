@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Print Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center no-print">
+                <h2><i class="bi bi-printer"></i> Print Payment Records</h2>
+                <div>
+                    <button onclick="window.print()" class="btn btn-primary">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                    <a href="{{ url_for('payments.list_payments') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Print Content -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm print-card">
+                <!-- Print Header -->
+                <div class="text-center mb-4 border-bottom pb-3">
+                    <h3 class="mb-1">
+                        <strong>ACCDT College Management System</strong>
+                    </h3>
+                    <p class="mb-0 text-muted">Payment Records Report</p>
+                    <small class="text-muted">Printed on: {{ print_date.strftime('%d-%m-%Y %H:%M:%S') }}</small>
+                </div>
+
+                <!-- Statistics Summary -->
+                <div class="row mb-4">
+                    <div class="col-md-4 text-center">
+                        <div class="mb-2">
+                            <h6 class="text-muted">Total Amount Due</h6>
+                            <h4 class="text-primary"><strong>Rs. {{ "{:,.0f}".format(stats.total_due) }}</strong></h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="mb-2">
+                            <h6 class="text-muted">Total Amount Paid</h6>
+                            <h4 class="text-success"><strong>Rs. {{ "{:,.0f}".format(stats.total_paid) }}</strong></h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="mb-2">
+                            <h6 class="text-muted">Outstanding Balance</h6>
+                            <h4 class="text-danger"><strong>Rs. {{ "{:,.0f}".format(stats.total_pending) }}</strong></h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Records Table -->
+                <div class="table-responsive">
+                    {% if payments %}
+                    <table class="table table-sm table-bordered table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th style="width: 5%;">#</th>
+                                <th style="width: 15%;">Student Name</th>
+                                <th style="width: 10%;">Reg. No.</th>
+                                <th style="width: 12%;">Category</th>
+                                <th style="width: 12%;">Amount Due</th>
+                                <th style="width: 12%;">Amount Paid</th>
+                                <th style="width: 10%;">Status</th>
+                                <th style="width: 10%;">Method</th>
+                                <th style="width: 12%;">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td class="text-center">{{ loop.index }}</td>
+                                <td>
+                                    <strong>{{ payment.student.full_name }}</strong>
+                                </td>
+                                <td>{{ payment.student.registration_number }}</td>
+                                <td>{{ payment.category.name }}</td>
+                                <td class="text-end">Rs. {{ "{:,.0f}".format(payment.amount_due) }}</td>
+                                <td class="text-end text-success"><strong>Rs. {{ "{:,.0f}".format(payment.amount_paid) }}</strong></td>
+                                <td class="text-center">
+                                    {% if payment.status == 'paid' %}
+                                        <span class="badge bg-success">Paid</span>
+                                    {% elif payment.status == 'pending' %}
+                                        <span class="badge bg-danger">Pending</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Partial</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">{{ payment.method|title }}</td>
+                                <td class="text-center">{{ payment.payment_date.strftime('%d-%m-%Y') }}</td>
+                            </tr>
+                            {% endfor %}
+                            <!-- Summary Row -->
+                            <tr class="table-secondary" style="font-weight: bold;">
+                                <td colspan="4" class="text-end"><strong>TOTAL:</strong></td>
+                                <td class="text-end">Rs. {{ "{:,.0f}".format(stats.total_due) }}</td>
+                                <td class="text-end text-success">Rs. {{ "{:,.0f}".format(stats.total_paid) }}</td>
+                                <td colspan="3"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i> No payment records found for the selected filters.
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Footer -->
+                <div class="row mt-5 pt-4 border-top">
+                    <div class="col-md-6">
+                        <p><small class="text-muted">Report generated by: ACCDT CMS</small></p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <p><small class="text-muted">Page 1 of 1</small></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Print Styles -->
+<style media="print">
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        
+        body {
+            background-color: white;
+            color: black;
+        }
+        
+        .container-fluid {
+            max-width: 100%;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .card {
+            border: 1px solid #000;
+            box-shadow: none;
+            page-break-inside: avoid;
+        }
+        
+        .card-header {
+            background-color: #f8f9fa !important;
+            border-bottom: 2px solid #000;
+        }
+        
+        table {
+            margin: 0;
+            width: 100%;
+        }
+        
+        thead {
+            display: table-header-group;
+        }
+        
+        tfoot {
+            display: table-footer-group;
+        }
+        
+        tr {
+            page-break-inside: avoid;
+        }
+        
+        .table-dark {
+            background-color: #343a40 !important;
+            color: white !important;
+        }
+        
+        .table-dark th {
+            background-color: #343a40 !important;
+            color: white !important;
+            border: 1px solid #000 !important;
+        }
+        
+        .table-secondary {
+            background-color: #e2e3e5 !important;
+        }
+        
+        .badge {
+            border: 1px solid #000;
+        }
+        
+        .text-success {
+            color: #28a745 !important;
+        }
+        
+        .text-danger {
+            color: #dc3545 !important;
+        }
+        
+        .text-primary {
+            color: #007bff !important;
+        }
+        
+        .print-card {
+            background-color: white;
+            color: black;
+        }
+    }
+</style>
+{% endblock %}

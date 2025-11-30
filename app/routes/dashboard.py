@@ -2,8 +2,8 @@
 Dashboard routes and API endpoints.
 """
 
-from flask import Blueprint, render_template, jsonify
-from flask_login import login_required
+from flask import Blueprint, render_template, jsonify, redirect, url_for
+from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 
 from app.models import db, Student, Course, Enrollment, Attendance, Payment
@@ -13,9 +13,10 @@ dashboard_bp = Blueprint('dashboard', __name__)
 
 @dashboard_bp.route('/')
 @dashboard_bp.route('/dashboard')
-@login_required
 def index():
-    """Dashboard page"""
+    """Dashboard page or redirect to guest courses if not authenticated"""
+    if not current_user.is_authenticated:
+        return redirect(url_for('courses.guest_browse_courses'))
     return render_template('dashboard.html')
 
 
@@ -23,18 +24,26 @@ def index():
 @login_required
 def api_dashboard():
     """
-    API endpoint returning dashboard statistics.
-    Returns counts for students, courses, fees, attendance, etc.
+    API endpoint returning enhanced dashboard statistics.
+    Includes:
+    - Total students (male/female breakdown)
+    - Day scholars (male/female breakdown)
+    - Hostel students (male/female breakdown)
+    - Students by course
+    - Fee statistics
+    - Attendance data
     """
-    # Student statistics
+    # Student statistics - Overall
     total_students = Student.query.count()
     total_male = Student.query.filter_by(gender='M').count()
     total_female = Student.query.filter_by(gender='F').count()
     
+    # Day Scholar Statistics
     total_day_scholars = Student.query.filter_by(admission_type='day_scholar').count()
     total_day_scholars_male = Student.query.filter_by(admission_type='day_scholar', gender='M').count()
     total_day_scholars_female = Student.query.filter_by(admission_type='day_scholar', gender='F').count()
     
+    # Hostel Statistics
     total_hostel = Student.query.filter_by(admission_type='hostel').count()
     total_hostel_male = Student.query.filter_by(admission_type='hostel', gender='M').count()
     total_hostel_female = Student.query.filter_by(admission_type='hostel', gender='F').count()
@@ -53,7 +62,7 @@ def api_dashboard():
     this_month_payments = Payment.query.filter(
         db.func.date(Payment.payment_date) >= month_start
     ).all()
-    fees_collected_month = sum(p.amount for p in this_month_payments)
+    fees_collected_month = sum(p.amount_paid for p in this_month_payments)
     
     # Calculate fees pending
     total_fee = sum(c.fee * Enrollment.query.filter_by(course_id=c.id).count()
@@ -67,13 +76,33 @@ def api_dashboard():
     total_present = sum(1 for a in today_attendance if a.status == 'present')
     attendance_percent = (total_present / len(today_attendance) * 100) if today_attendance else 0
     
-    # Students per course (for chart)
+    # Students per course (for chart) with gender breakdown
     courses_data = []
     for course in Course.query.all():
+        # Get male and female student counts for this course
+        male_students = db.session.query(db.func.count(Student.id)).join(
+            Enrollment
+        ).filter(
+            Enrollment.course_id == course.id,
+            Student.gender == 'M'
+        ).scalar()
+        
+        female_students = db.session.query(db.func.count(Student.id)).join(
+            Enrollment
+        ).filter(
+            Enrollment.course_id == course.id,
+            Student.gender == 'F'
+        ).scalar()
+        
         courses_data.append({
             'name': course.name,
-            'students': course.student_count
+            'total': course.student_count,
+            'male': male_students or 0,
+            'female': female_students or 0
         })
+    
+    # Sort by name for consistent display
+    courses_data.sort(key=lambda x: x['name'])
     
     # Fee collection trend (last 6 months)
     fee_trend = []
@@ -82,7 +111,7 @@ def api_dashboard():
         month_start_check = month_date.replace(day=1)
         month_end_check = (month_start_check + timedelta(days=32)).replace(day=1) - timedelta(days=1)
         
-        month_total = db.session.query(db.func.sum(Payment.amount)).filter(
+        month_total = db.session.query(db.func.sum(Payment.amount_paid)).filter(
             db.func.date(Payment.payment_date) >= month_start_check,
             db.func.date(Payment.payment_date) <= month_end_check
         ).scalar() or 0

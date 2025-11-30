@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <!-- Payment Slip -->
+            <div class="payment-slip">
+                <!-- Header -->
+                <div class="slip-header text-center mb-4 pb-3 border-bottom">
+                    <h2 class="school-name mb-2">Aisha Cahn College of Computer Science Design Technology</h2>
+                    <p class="address mb-1">Address Line | Phone: +92-300-XXXXXXX | Email: contact@school.edu.pk</p>
+                    <hr class="my-2">
+                    <h5 class="text-danger"><i class="bi bi-file-earmark-text"></i> PAYMENT RECEIPT / ADMIN COPY</h5>
+                </div>
+
+                <!-- Receipt Info -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Receipt #:</strong> <span class="badge bg-secondary">#{{ payment.id }}</span></p>
+                        <p><strong>Date:</strong> {{ payment.payment_date.strftime('%d-%m-%Y %H:%M:%S') }}</p>
+                        <p><strong>Payment ID:</strong> {{ payment.id }}</p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <p><strong>Received From:</strong> {{ payment.student.full_name }}</p>
+                        <p><strong>Reg. No:</strong> {{ payment.student.registration_number }}</p>
+                        <p><strong>Recorded By:</strong> {{ payment.recorded_by.username }}</p>
+                    </div>
+                </div>
+
+                <!-- Student Details -->
+                <div class="student-details mb-4 p-3" style="background-color: #f8f9fa; border-left: 4px solid #dc3545;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Full Name:</strong> {{ payment.student.full_name }}</p>
+                            <p><strong>Father's Name:</strong> {{ payment.student.father_name or 'N/A' }}</p>
+                            <p><strong>CNIC:</strong> {{ payment.student.cnic or 'N/A' }}</p>
+                            <p><strong>Date of Birth:</strong> {{ payment.student.date_of_birth.strftime('%d-%m-%Y') if payment.student.date_of_birth else 'N/A' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Registration Number:</strong> {{ payment.student.registration_number }}</p>
+                            <p><strong>Email:</strong> {{ payment.student.email or 'N/A' }}</p>
+                            <p><strong>Phone:</strong> {{ payment.student.phone or 'N/A' }}</p>
+                            <p><strong>Address:</strong> {{ payment.student.city or 'N/A' }}, {{ payment.student.state or 'N/A' }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Details Table -->
+                <div class="mb-4">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Category</th>
+                                <th class="text-center">Amount Due</th>
+                                <th class="text-center">Amount Paid</th>
+                                <th class="text-center">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong>{{ payment.category.name }}</strong>
+                                    {% if payment.course %}
+                                    <br><small class="text-muted">Course: {{ payment.course.name }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">Rs. {{ "{:,.0f}".format(payment.amount_due) }}</td>
+                                <td class="text-center text-success"><strong>Rs. {{ "{:,.0f}".format(payment.amount_paid) }}</strong></td>
+                                <td class="text-center text-danger"><strong>Rs. {{ "{:,.0f}".format(payment.amount_due_remaining) }}</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Payment Method & Status -->
+                <div class="row mb-4">
+                    <div class="col-md-6 p-3" style="background-color: #f8f9fa; border-left: 4px solid #28a745;">
+                        <p><strong>Payment Method:</strong> {{ payment.method|title }}</p>
+                        {% if payment.reference_no %}
+                        <p><strong>Reference Number:</strong> {{ payment.reference_no }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 p-3" style="background-color: #f8f9fa; border-left: 4px solid #007bff;">
+                        <p><strong>Payment Status:</strong></p>
+                        {% if payment.status == 'paid' %}
+                            <span class="badge bg-success" style="font-size: 1rem; padding: 0.5rem 1rem;">PAID</span>
+                        {% elif payment.status == 'pending' %}
+                            <span class="badge bg-danger" style="font-size: 1rem; padding: 0.5rem 1rem;">PENDING</span>
+                        {% else %}
+                            <span class="badge bg-warning" style="font-size: 1rem; padding: 0.5rem 1rem;">PARTIAL PAID</span>
+                        {% endif %}
+                        <p class="mt-2"><strong>Percentage Paid:</strong> {{ "{:.1f}".format(payment.percentage_paid) }}%</p>
+                    </div>
+                </div>
+
+                <!-- Summary Table for Admin -->
+                <div class="mb-4">
+                    <h6 class="mb-3"><i class="bi bi-info-circle"></i> Payment Summary</h6>
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>Original Amount Due:</strong></td>
+                            <td class="text-end"><strong>Rs. {{ "{:,.0f}".format(payment.amount_due) }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Amount Paid (Current):</strong></td>
+                            <td class="text-end"><strong>Rs. {{ "{:,.0f}".format(payment.amount_paid) }}</strong></td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td><strong>Outstanding Balance:</strong></td>
+                            <td class="text-end"><strong>Rs. {{ "{:,.0f}".format(payment.amount_due_remaining) }}</strong></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Notes Section -->
+                {% if payment.notes %}
+                <div class="mb-4 p-3" style="background-color: #fff3cd; border-left: 4px solid #ffc107;">
+                    <strong>Notes:</strong> {{ payment.notes }}
+                </div>
+                {% endif %}
+
+                <!-- Recording Information -->
+                <div class="mb-4 p-3" style="background-color: #f0f0f0; border: 1px solid #ccc;">
+                    <small>
+                        <p class="mb-1"><strong>Record Information:</strong></p>
+                        <p class="mb-1">Recorded By: {{ payment.recorded_by.username }} ({{ payment.recorded_by.email or 'N/A' }})</p>
+                        <p class="mb-1">Created At: {{ payment.created_at.strftime('%d-%m-%Y %H:%M:%S') }}</p>
+                        <p class="mb-0">Last Updated: {{ payment.updated_at.strftime('%d-%m-%Y %H:%M:%S') }}</p>
+                    </small>
+                </div>
+
+                <!-- Footer -->
+                <div class="slip-footer text-center pt-4 border-top mt-4">
+                    <p class="text-muted mb-2">
+                        <strong>Authorized By: _______________________</strong>
+                    </p>
+                    <p class="text-muted mb-2">
+                        <strong>Date: _______________________</strong>
+                    </p>
+                    <p class="text-muted small mt-3">
+                        This is an administrative copy of the payment record.
+                    </p>
+                    <p class="text-muted small">
+                        For official records and internal use only.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Print Buttons -->
+            <div class="row mt-4 no-print">
+                <div class="col-md-12 text-center">
+                    <button onclick="window.print()" class="btn btn-danger">
+                        <i class="bi bi-printer"></i> Print Admin Copy
+                    </button>
+                    <a href="{{ url_for('payments.view_payment', payment_id=payment.id) }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Details
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        width: 100%;
+        max-width: 100%;
+    }
+    .no-print {
+        display: none !important;
+    }
+    .payment-slip {
+        page-break-inside: avoid;
+    }
+}
+
+.payment-slip {
+    background: white;
+    padding: 30px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.school-name {
+    color: #004e89;
+    font-weight: bold;
+}
+
+.slip-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.student-details {
+    border-left: 4px solid #dc3545;
+}
+
+.slip-footer {
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #ddd;
+}
+
+.table-bordered td, .table-bordered th {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+</style>
+{% endblock %}

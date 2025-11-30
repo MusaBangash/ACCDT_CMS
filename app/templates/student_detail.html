@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header with Photo -->
+    <div class="row mb-4">
+        <div class="col-md-3 text-center">
+            {% if student.photo_path %}
+                <img src="{{ url_for('static', filename='uploads/' + student.photo_path) }}" 
+                     alt="{{ student.full_name }}" class="img-fluid rounded" style="max-width: 200px;">
+            {% else %}
+                <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                     style="width: 200px; height: 250px; margin: 0 auto;">
+                    <div class="text-center">
+                        <i class="fas fa-user fa-5x text-secondary mb-2"></i>
+                        <p class="text-muted">No Photo</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="col-md-9">
+            <h1>{{ student.full_name }}</h1>
+            <p class="text-muted">
+                Student ID: <strong>#{{ student.id }}</strong> | 
+                Registration: <strong>{{ student.registration_number or 'Pending' }}</strong>
+            </p>
+            
+            <div class="mb-3">
+                <span class="badge bg-primary me-2">{{ student.gender_label }}</span>
+                <span class="badge {% if student.admission_type == 'day_scholar' %}bg-info{% else %}bg-warning{% endif %} me-2">
+                    {{ student.admission_type|replace('_', ' ')|title }}
+                </span>
+                <span class="badge {{ student.status_badge_class }}">
+                    {{ student.status_label }}
+                </span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <small class="text-muted">Contact</small>
+                    <p class="mb-0"><a href="tel:{{ student.phone }}">{{ student.phone }}</a></p>
+                    {% if student.emergency_contact %}
+                        <small class="text-muted">Emergency: <a href="tel:{{ student.emergency_contact }}">{{ student.emergency_contact }}</a></small>
+                    {% endif %}
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted">CNIC</small>
+                    <p class="mb-0"><code>{{ student.cnic }}</code></p>
+                </div>
+                <div class="col-md-4">
+                    <small class="text-muted">Age</small>
+                    <p class="mb-0"><strong>{{ student.age }} years</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Personal Information -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Personal Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-2">
+                        <strong>Full Name:</strong><br>
+                        {{ student.full_name }}
+                    </p>
+                    <p class="mb-2">
+                        <strong>Gender:</strong><br>
+                        {% if student.gender == 'M' %}Male{% elif student.gender == 'F' %}Female{% else %}Other{% endif %}
+                    </p>
+                    <p class="mb-2">
+                        <strong>Date of Birth:</strong><br>
+                        {{ student.date_of_birth.strftime('%d %B %Y') if student.date_of_birth else 'N/A' }}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-2">
+                        <strong>CNIC / B-Form:</strong><br>
+                        <code>{{ student.cnic }}</code>
+                    </p>
+                    <p class="mb-2">
+                        <strong>Blood Group:</strong><br>
+                        {{ student.blood_group or 'Not Specified' }}
+                    </p>
+                    <p class="mb-2">
+                        <strong>Nationality:</strong><br>
+                        {{ student.nationality or 'N/A' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address Information -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Address Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-2">
+                        <strong>Postal Address:</strong><br>
+                        {{ student.address or 'N/A' }}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-2">
+                        <strong>Permanent Address:</strong><br>
+                        {{ student.permanent_address or 'N/A' }}
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">
+                        <strong>City:</strong><br>
+                        {{ student.city or 'N/A' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guardian Information -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Guardian Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-2">
+                        <strong>Guardian Name:</strong><br>
+                        {{ student.guardian_name or 'N/A' }}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-2">
+                        <strong>Guardian CNIC:</strong><br>
+                        <code>{{ student.guardian_cnic or 'N/A' }}</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollment Information -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Enrolled Courses</h5>
+        </div>
+        <div class="card-body">
+            {% if enrollments %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Course Name</th>
+                                <th>Course Fee</th>
+                                <th>Enrollment Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in enrollments %}
+                            <tr>
+                                <td>{{ enrollment.course.name }}</td>
+                                <td>Rs. {{ '{:,.0f}'.format(enrollment.course.fee) }}</td>
+                                <td>{{ enrollment.enroll_date.strftime('%d %b %Y') }}</td>
+                                <td><span class="badge bg-success">Active</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mb-0 mt-3">
+                    <strong>Total Courses:</strong> {{ enrollments|length }}<br>
+                    <strong>Total Fee:</strong> Rs. {{ '{:,.0f}'.format(student.total_fees_due()) }}
+                </p>
+            {% else %}
+                <p class="text-muted">No courses enrolled yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Qualifications -->
+    {% if student.last_qualification or student.current_qualification %}
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Qualifications</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">
+                        <strong>Last Qualification:</strong><br>
+                        {{ student.last_qualification or 'N/A' }}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-0">
+                        <strong>Current Qualification:</strong><br>
+                        {{ student.current_qualification or 'N/A' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Status Management -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-tasks"></i> Status Management</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-3"><strong>Current Status:</strong> <span class="badge {{ student.status_badge_class }} fs-6">{{ student.status_label }}</span></p>
+                    <p class="text-muted small">Admission Date: {{ student.admission_date.strftime('%d %b %Y') }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-0"><strong>Quick Actions:</strong></p>
+                    <div class="btn-group-vertical w-100 mt-2" role="group">
+                        {% if student.status != 'active' %}
+                            <form method="POST" action="{{ url_for('students.update_student_status', student_id=student.id) }}" style="display: inline;">
+                                <input type="hidden" name="status" value="active">
+                                <button type="submit" class="btn btn-sm btn-success text-start">
+                                    <i class="fas fa-check-circle"></i> Mark as Active
+                                </button>
+                            </form>
+                        {% endif %}
+                        {% if student.status != 'inactive' %}
+                            <form method="POST" action="{{ url_for('students.update_student_status', student_id=student.id) }}" style="display: inline;">
+                                <input type="hidden" name="status" value="inactive">
+                                <button type="submit" class="btn btn-sm btn-danger text-start">
+                                    <i class="fas fa-ban"></i> Mark as Inactive
+                                </button>
+                            </form>
+                        {% endif %}
+                        {% if student.status != 'graduated' %}
+                            <form method="POST" action="{{ url_for('students.update_student_status', student_id=student.id) }}" style="display: inline;">
+                                <input type="hidden" name="status" value="graduated">
+                                <button type="submit" class="btn btn-sm btn-info text-start">
+                                    <i class="fas fa-graduation-cap"></i> Mark as Graduated
+                                </button>
+                            </form>
+                        {% endif %}
+                        {% if student.status != 'leave' %}
+                            <form method="POST" action="{{ url_for('students.update_student_status', student_id=student.id) }}" style="display: inline;">
+                                <input type="hidden" name="status" value="leave">
+                                <button type="submit" class="btn btn-sm btn-warning text-start">
+                                    <i class="fas fa-calendar-times"></i> Mark as On Leave
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-2">
+                    <a href="{{ url_for('students.edit_student', student_id=student.id) }}" 
+                       class="btn btn-warning w-100">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <a href="{{ url_for('students.print_student', student_id=student.id) }}" 
+                       class="btn btn-primary w-100" target="_blank">
+                        <i class="fas fa-print"></i> Print
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <a href="{{ url_for('students.list_students') }}" 
+                       class="btn btn-secondary w-100">
+                        <i class="fas fa-arrow-left"></i> List
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <a href="{{ url_for('dashboard.index') }}" 
+                       class="btn btn-info w-100">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger w-100" 
+                            onclick="if(confirm('Delete this student?')) document.getElementById('deleteForm').submit();">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Form -->
+<form id="deleteForm" method="POST" action="{{ url_for('students.delete_student', student_id=student.id) }}" style="display: none;">
+</form>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+}
+
+.card-header {
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+code {
+    background-color: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.badge {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+}
+</style>
+{% endblock %}

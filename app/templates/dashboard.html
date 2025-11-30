@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - School Management System{% endblock %}
+{% block title %}Dashboard - ACCDT CMS{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -73,24 +73,45 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header bg-light">
-                <h5 class="mb-0">Student Distribution</h5>
+                <h5 class="mb-0">📊 Student Statistics</h5>
             </div>
             <div class="card-body">
-                <div class="row">
+                <div class="row mb-3">
                     <div class="col-6">
-                        <p class="text-muted small">Total:</p>
-                        <h4 id="total_students_2">-</h4>
+                        <p class="text-muted small">Total Students:</p>
+                        <h4 id="total_students_2" class="text-primary">-</h4>
                     </div>
                     <div class="col-6">
                         <p class="text-muted small">Male / Female:</p>
-                        <h4><span id="total_male">-</span> / <span id="total_female">-</span></h4>
+                        <h4 class="text-info"><span id="total_male">-</span> / <span id="total_female">-</span></h4>
                     </div>
                 </div>
                 <hr>
-                <p class="text-muted small mb-2"><i class="bi bi-house"></i> Day Scholars</p>
-                <p class="mb-2"><span id="total_day_scholars">-</span> total <small class="text-muted">(<span id="total_day_scholars_male">-</span>M / <span id="total_day_scholars_female">-</span>F)</small></p>
-                <p class="text-muted small mb-2"><i class="bi bi-building"></i> Hostel</p>
-                <p class="mb-0"><span id="total_hostel">-</span> total <small class="text-muted">(<span id="total_hostel_male">-</span>M / <span id="total_hostel_female">-</span>F)</small></p>
+                
+                <p class="text-muted small mb-2"><i class="bi bi-house"></i> <strong>Day Scholars</strong></p>
+                <div class="row">
+                    <div class="col-6">
+                        <p class="mb-1">Total: <span id="total_day_scholars" class="badge bg-info">-</span></p>
+                        <p class="small text-muted">Male: <span id="total_day_scholars_male">-</span></p>
+                    </div>
+                    <div class="col-6">
+                        <p class="mb-1">&nbsp;</p>
+                        <p class="small text-muted">Female: <span id="total_day_scholars_female">-</span></p>
+                    </div>
+                </div>
+                
+                <hr>
+                <p class="text-muted small mb-2"><i class="bi bi-building"></i> <strong>Hostel Students</strong></p>
+                <div class="row">
+                    <div class="col-6">
+                        <p class="mb-1">Total: <span id="total_hostel" class="badge bg-warning">-</span></p>
+                        <p class="small text-muted">Male: <span id="total_hostel_male">-</span></p>
+                    </div>
+                    <div class="col-6">
+                        <p class="mb-1">&nbsp;</p>
+                        <p class="small text-muted">Female: <span id="total_hostel_female">-</span></p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -98,7 +119,7 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header bg-light">
-                <h5 class="mb-0">Monthly Stats</h5>
+                <h5 class="mb-0">📅 Monthly Stats</h5>
             </div>
             <div class="card-body">
                 <p class="text-muted small mb-2">New Admissions:</p>
@@ -116,24 +137,24 @@
 
 <!-- Charts Row -->
 <div class="row g-4">
-    <div class="col-md-6">
+    <div class="col-lg-8">
         <div class="card">
             <div class="card-header bg-light">
-                <h5 class="mb-0">Students per Course</h5>
+                <h5 class="mb-0">👥 Students by Course</h5>
             </div>
             <div class="card-body">
-                <canvas id="coursesChart" height="200"></canvas>
+                <canvas id="coursesChart" height="250"></canvas>
             </div>
         </div>
     </div>
 
-    <div class="col-md-6">
+    <div class="col-lg-4">
         <div class="card">
             <div class="card-header bg-light">
-                <h5 class="mb-0">Fee Collection Trend (Last 6 Months)</h5>
+                <h5 class="mb-0">💰 Fee Collection Trend</h5>
             </div>
             <div class="card-body">
-                <canvas id="feesTrendChart" height="200"></canvas>
+                <canvas id="feesTrendChart" height="250"></canvas>
             </div>
         </div>
     </div>

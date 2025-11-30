@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="bi bi-person-badge"></i> {{ student.full_name }}</h1>
+                    <p class="text-muted mb-0">
+                        <strong>Registration:</strong> {{ student.registration_number }} | 
+                        <strong>Email:</strong> {{ student.email or 'N/A' }}
+                    </p>
+                </div>
+                <a href="{{ url_for('students.view_student', student_id=student.id) }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dues Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Total Amount Due</h6>
+                    <h3 class="text-primary">Rs. {{ "{:,.0f}".format(stats.total_due) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Total Paid</h6>
+                    <h3 class="text-success">Rs. {{ "{:,.0f}".format(stats.total_paid) }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Outstanding Balance</h6>
+                    <h3 class="text-danger">Rs. {{ "{:,.0f}".format(stats.total_pending) }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment History -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-clock-history"></i> Payment History & Dues
+                </div>
+                <div class="card-body">
+                    {% if payments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Receipt #</th>
+                                    <th>Category</th>
+                                    <th class="text-center">Amount Due</th>
+                                    <th class="text-center">Amount Paid</th>
+                                    <th class="text-center">Balance</th>
+                                    <th class="text-center">Status</th>
+                                    <th class="text-center">Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-secondary">#{{ payment.id }}</span>
+                                    </td>
+                                    <td>{{ payment.category.name }}</td>
+                                    <td class="text-center">
+                                        <strong>Rs. {{ "{:,.0f}".format(payment.amount_due) }}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <strong class="text-success">Rs. {{ "{:,.0f}".format(payment.amount_paid) }}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if payment.amount_due_remaining > 0 %}
+                                            <strong class="text-danger">Rs. {{ "{:,.0f}".format(payment.amount_due_remaining) }}</strong>
+                                        {% else %}
+                                            <strong class="text-success">Rs. 0</strong>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if payment.status == 'paid' %}
+                                            <span class="badge bg-success">Paid</span>
+                                        {% elif payment.status == 'pending' %}
+                                            <span class="badge bg-danger">Pending</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Partial Paid</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">{{ payment.payment_date.strftime('%d-%m-%Y') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('payments.view_payment', payment_id=payment.id) }}" 
+                                           class="btn btn-sm btn-info" title="View Details">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('payments.student_slip', payment_id=payment.id) }}" 
+                                           class="btn btn-sm btn-success" target="_blank" title="Print Receipt">
+                                            <i class="bi bi-printer"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle"></i> No payment records found for this student.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Record Payment Button -->
+    <div class="row mt-4">
+        <div class="col-md-12 text-center">
+            <a href="{{ url_for('payments.record_payment') }}" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle"></i> Record New Payment for This Student
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+}
+.badge {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.65rem;
+}
+</style>
+{% endblock %}
